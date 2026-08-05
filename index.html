@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Live English Radio - Premium Edition</title>
+  <!-- Google Fonts: Plus Jakarta Sans 추가 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // 프리미엄 테마 및 컬러 커스터마이징
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            app: {
+              bg: '#fcfdfe', // 더 깨끗한 크림 화이트 배경
+              header: '#1e3a8a', // 깊고 세련된 인디고
+              genre: '#f0f7ff', // 아주 연한 블루 장르 라벨 배경
+              card: '#ffffff', // 화이트 카드
+              cardActive: '#e0f2fe', // 활성 카드 배경 (매우 연한 Sky)
+              cardBorder: '#e2e8f0', // 미묘한 테두리
+              text: '#334155', // 깊은 그레이 텍스트
+              accent: '#38bdf8', // 세련된 Teal 포인트
+              stop: '#ef4444', // 명확한 레드 중지 버튼
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* 미묘한 카드 등장 애니메이션 */
+    @keyframes fade-in-up {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fade-in-up 0.5s ease-out forwards;
+    }
+
+    /* 웨이브 시각화 (더 세련되게) */
+    .wave {
+      width: 4px; height: 100%;
+      background-color: #38bdf8; /* app.accent */
+      border-radius: 10px;
+      animation: wave-bounce 1s infinite alternate;
+    }
+    .wave:nth-child(2) { animation-delay: -0.8s; }
+    .wave:nth-child(3) { animation-delay: -0.6s; }
+    .wave:nth-child(4) { animation-delay: -0.4s; }
+    .wave:nth-child(5) { animation-delay: -0.2s; }
+
+    @keyframes wave-bounce {
+      0% { transform: scaleY(0.2); }
+      100% { transform: scaleY(1); }
+    }
+
+    /* 스크롤바 디자인 */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-app-bg text-app-text font-sans antialiased min-h-screen flex justify-center selection:bg-app-accent selection:text-white">
+
+  <!-- 메인 모바일 앱 컨테이너 (그림자 및 테두리 조정) -->
+  <div class="w-full max-w-md bg-white min-h-screen shadow-2xl relative flex flex-col pb-32 border border-app-cardBorder rounded-t-3xl md:rounded-3xl overflow-hidden md:my-10">
+    
+    <!-- 정교한 헤더 (그라데이션 및 타이포그래피 계층) -->
+    <header class="bg-gradient-to-r from-app-header to-[#2a5298] text-white p-8 rounded-b-3xl shadow-xl flex items-center justify-between">
+      <div class="flex-col">
+        <h1 class="text-3xl font-extrabold tracking-tight">Live English</h1>
+        <p class="text-2xl font-medium tracking-wide">Radio <span class="font-normal opacity-80">라디오</span></p>
+      </div>
+      <!-- 세련된 라디오 아이콘 (Lucide Radio Icons) -->
+      <svg class="w-16 h-16 text-white/90" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3a1 1 0 10-2 0v1H6a3 3 0 00-3 3v6a3 3 0 003 3h8a3 3 0 003-3V7a3 3 0 00-3-3h-3V3z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M7 11h10M10 15h4M5.592 11.5L8.24 8.24M18.408 11.5l-2.648-2.648"></path></svg>
+    </header>
+
+    <!-- 라디오 채널 리스트 (장르 구분 반영) -->
+    <main class="p-6 flex-grow space-y-6">
+      <div id="station-list" class="space-y-6">
+        <!-- JS로 장르별 카드 리스트가 렌더링됩니다 -->
+      </div>
+    </main>
+
+    <!-- 정교한 하단 고정 플레이 상태바 (더 앱 같은 느낌, Backdrop Blur 추가) -->
+    <div id="now-playing-bar" class="fixed bottom-0 md:bottom-10 w-full max-w-md bg-white/90 backdrop-blur-sm border-t border-app-cardBorder p-5 flex items-center justify-between shadow-2xl transition-all transform translate-y-full z-50 rounded-t-3xl md:rounded-3xl">
+      <div class="flex items-center space-x-4 w-3/4">
+        <!-- 현재 재생 중인 채널의 아이콘 Placeholder -->
+        <div class="w-12 h-12 bg-app-cardBorder rounded-xl flex items-center justify-center text-app-text/70 shadow-inner shrink-0">
+          <span class="text-xs font-bold">RAD</span>
+        </div>
+        <div class="flex flex-col overflow-hidden">
+          <span class="text-xs text-app-text/70" id="now-playing-genre">Genre</span>
+          <span id="now-playing-title" class="font-bold text-lg truncate text-app-text">Station Name</span>
+        </div>
+      </div>
+      
+      <!-- 중지 버튼 (더 앱 같은 디자인) -->
+      <button onclick="stopRadio()" class="bg-app-stop hover:scale-105 text-white p-2 rounded-full w-14 h-14 flex items-center justify-center transition-all shrink-0 active:scale-95 shadow-lg">
+        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 디자인 목업에 맞춘 채널 및 장르 데이터 (안정적인 스트리밍 주소 위주)
+    // Lucide Icon SVG 데이터를 직접 포함 (CDN 사용을 위해)
+    const icons = {
+      news: '<svg class="w-4 h-4 mr-1 text-app-accent" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path></svg>',
+      jazz: '<svg class="w-4 h-4 mr-1 text-app-accent" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"></path></svg>',
+      pop: '<svg class="w-4 h-4 mr-1 text-app-accent" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg>'
+    };
+
+    const stations = [
+      // 뉴스 & 토크
+      { id: 1, genre: "📰 News & Talk", name: "BBC World Service", country: "UK Global", url: "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service", iconText: "NEWS" },
+      { id: 2, genre: "📰 News & Talk", name: "WNYC FM", country: "US New York", url: "https://fm939.wnyc.org/wnycfm.aac", iconText: "NYC" },
+      { id: 3, genre: "📰 News & Talk", name: "Monocle 24", country: "UK Culture", url: "https://radio.monocle.com/live", iconText: "MONO" },
+      
+      // 재즈 & 칠아웃 (음악)
+      { id: 4, genre: "🎷 Jazz & Chill", name: "Jazz24", country: "US Seattle", url: "https://live.wostreaming.net/direct/ppm-jazz24aac-ibc1", iconText: "JAZZ" },
+      { id: 5, genre: "🎷 Jazz & Chill", name: "SomaFM Groove Salad", country: "US Ambient", url: "https://ice1.somafm.com/groovesalad-128-aac", iconText: "SOMA" },
+      
+      // 팝 & 록 (음악)
+      { id: 6, genre: "🎸 Pop & Rock", name: "181.fm - Awesome 80s", country: "US 80s Pop", url: "https://listen.181fm.com/181-awesome80s_128k.mp3", iconText: "80s" },
+      { id: 7, genre: "🎸 Pop & Rock", name: "181.fm - The Eagle", country: "US Classic Rock", url: "https://listen.181fm.com/181-eagle_128k.mp3", iconText: "EAGL" }
+    ];
+
+    let audio = new Audio();
+    let currentStationId = null;
+
+    const stationListElement = document.getElementById('station-list');
+    const nowPlayingBar = document.getElementById('now-playing-bar');
+    const nowPlayingTitle = document.getElementById('now-playing-title');
+    const nowPlayingGenre = document.getElementById('now-playing-genre');
+
+    // 장르별로 그룹화하여 카드 기반 렌더링
+    function renderStations() {
+      stationListElement.innerHTML = '';
+      
+      const genres = [...new Set(stations.map(s => s.genre))];
+
+      genres.forEach(genre => {
+        // 장르 소제목 (연한 Teal 배경 반영)
+        const genreTitle = document.createElement('h2');
+        genreTitle.className = 'text-xs font-bold text-app-text/70 mt-6 mb-3 px-3 py-1 bg-app-genre rounded-full inline-flex items-center';
+        // 장르별 아이콘 매핑
+        let genreIcon = '';
+        if (genre.includes('News')) genreIcon = icons.news;
+        else if (genre.includes('Jazz')) genreIcon = icons.jazz;
+        else if (genre.includes('Pop')) genreIcon = icons.pop;
+
+        genreTitle.innerHTML = genreIcon + genre.toUpperCase();
+        stationListElement.appendChild(genreTitle);
+
+        const genreStations = stations.filter(s => s.genre === genre);
+        const ul = document.createElement('ul');
+        ul.className = 'space-y-4';
+
+        genreStations.forEach(station => {
+          const isPlaying = currentStationId === station.id;
+          
+          // 업그레이드된 카드 디자인 (전체 클릭 가능, 애니메이션 추가)
+          const li = document.createElement('li');
+          li.onclick = () => togglePlay(station.id);
+          li.className = `radio-card animate-fade-in flex items-center justify-between p-5 rounded-2xl border cursor-pointer shadow-sm ${isPlaying ? 'border-app-accent bg-app-cardActive' : 'border-app-cardBorder bg-app-card hover:border-app-accent/60'}`;
+          
+          li.innerHTML = `
+            <div class="flex items-center space-x-5 flex-grow overflow-hidden">
+              <!-- 채널별 Placeholder 아이콘 -->
+              <div class="w-14 h-14 bg-app-cardBorder rounded-xl flex items-center justify-center text-app-text/70 shadow-inner shrink-0 transition-all ${isPlaying ? 'bg-app-accent/30 text-app-accent' : ''}">
+                <span class="text-sm font-extrabold tracking-tighter">${station.iconText}</span>
+              </div>
+              <div class="flex flex-col w-full overflow-hidden">
+                <span class="font-extrabold text-app-text text-xl truncate">${station.name}</span>
+                <span class="text-sm text-app-text/70">${station.country}</span>
+              </div>
+            </div>
+            
+            <!-- 재생 상태 표시 (재생 버튼 / 웨이브 애니메이션) -->
+            <div class="w-11 h-11 flex items-center justify-center rounded-full transition-colors shrink-0 ${isPlaying ? 'bg-app-accent text-white' : 'bg-app-accent/10 text-app-accent'}">
+              ${isPlaying 
+                ? `<div class="flex space-x-1 items-end h-5 w-5">
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                  </div>`
+                : `<svg class="w-6 h-6 pl-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>`
+              }
+            </div>
+          `;
+          ul.appendChild(li);
+        });
+        
+        stationListElement.appendChild(ul);
+      });
+    }
+
+    function togglePlay(id) {
+      const station = stations.find(s => s.id === id);
+      
+      if (currentStationId === id) {
+        stopRadio();
+      } else {
+        // 기존 재생 중단
+        audio.pause();
+        currentStationId = id;
+        audio.src = station.url;
+        
+        // 오류 핸들링
+        audio.play().catch(e => {
+          console.error(e);
+          alert("스트리밍 연결이 차단되었거나 지연되었습니다. 잠시 후 다시 시도해주세요.");
+          stopRadio();
+        });
+        
+        // 하단 플레이어 바 업데이트
+        nowPlayingGenre.textContent = station.genre.replace(/.* /,'').toUpperCase(); // 이모지 제거 및 대문자
+        nowPlayingTitle.textContent = station.name;
+        nowPlayingBar.classList.remove('translate-y-full'); // 보이기
+        renderStations(); // 카드 상태 업데이트
+        setupMediaSession(station);
+      }
+    }
+
+    function stopRadio() {
+      audio.pause();
+      audio.src = '';
+      currentStationId = null;
+      nowPlayingBar.classList.add('translate-y-full'); // 숨기기
+      renderStations(); // 카드 상태 업데이트
+    }
+
+    function setupMediaSession(station) {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: station.name,
+          artist: station.genre,
+          album: 'Live English Radio App',
+        });
+
+        navigator.mediaSession.setActionHandler('pause', function() { stopRadio(); });
+        navigator.mediaSession.setActionHandler('play', function() { togglePlay(station.id); });
+      }
+    }
+
+    renderStations();
+  </script>
+</body>
+</html>
